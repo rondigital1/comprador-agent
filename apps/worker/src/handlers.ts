@@ -1,18 +1,25 @@
-import { prisma } from "@comprador/database";
+import { prisma } from "@casero/database";
 import {
   ConsentPurpose,
   GmailConnectionStatus,
   JobStatus,
   JobType,
   type OutboxJob,
-} from "@comprador/database/generated";
-import { GmailOAuthClient, TokenCipher } from "@comprador/gmail";
+} from "@casero/database/generated";
+import { GmailOAuthClient, TokenCipher } from "@casero/gmail";
 
 import { workerEnv } from "./env";
 import { createMailboxClient } from "./gmail-runtime";
+import { runDealResearch } from "./deal-research";
 import { renewWatch, runIncrementalSync, runInitialSync } from "./gmail-sync";
-import { ConnectionJobPayload, MessageJobPayload } from "./job-payloads";
+import {
+  ConnectionJobPayload,
+  DealResearchJobPayload,
+  MessageJobPayload,
+  ShoppingResearchJobPayload,
+} from "./job-payloads";
 import { processGmailMessage } from "./process-message";
+import { runShoppingResearch } from "./shopping-research";
 
 async function disconnectGmail(connectionId: string) {
   const connection = await prisma.gmailConnection.findUnique({
@@ -56,6 +63,16 @@ async function disconnectGmail(connectionId: string) {
 export async function handleJob(job: OutboxJob): Promise<void> {
   if (job.type === JobType.GMAIL_PROCESS_MESSAGE) {
     return processGmailMessage(MessageJobPayload.parse(job.payload));
+  }
+  if (job.type === JobType.DEAL_DEEP_ANALYSIS) {
+    return runDealResearch(
+      DealResearchJobPayload.parse(job.payload).analysisId,
+    );
+  }
+  if (job.type === JobType.SHOPPING_INTENT_RESEARCH) {
+    return runShoppingResearch(
+      ShoppingResearchJobPayload.parse(job.payload).intentId,
+    );
   }
 
   const { connectionId } = ConnectionJobPayload.parse(job.payload);
@@ -127,5 +144,41 @@ export async function scheduleGmailWork() {
         update: {},
       });
     }
+  }
+}
+
+export async function scheduleShoppingResearch() {
+  const now = new Date();
+  const dueIntents = await prisma.shoppingIntent.findMany({
+    where: {
+      active: true,
+      watchEnabled: true,
+      nextCheckAt: { lte: now },
+      researchStatus: { notIn: ["PENDING", "RUNNING"] },
+    },
+    select: { id: true, userId: true },
+    take: 100,
+  });
+  const dayBucket = now.toISOString().slice(0, 10);
+
+  for (const intent of dueIntents) {
+    const idempotencyKey = `shopping-watch:${intent.id}:${dayBucket}`;
+    await prisma.$transaction([
+      prisma.shoppingIntent.update({
+        where: { id: intent.id },
+        data: { researchStatus: "PENDING" },
+      }),
+      prisma.outboxJob.upsert({
+        where: { idempotencyKey },
+        create: {
+          userId: intent.userId,
+          type: JobType.SHOPPING_INTENT_RESEARCH,
+          payload: { intentId: intent.id },
+          idempotencyKey,
+          maxAttempts: 3,
+        },
+        update: {},
+      }),
+    ]);
   }
 }

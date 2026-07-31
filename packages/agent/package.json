@@ -1,5 +1,5 @@
 {
-  "name": "@comprador/agent",
+  "name": "@casero/agent",
   "private": true,
   "type": "module",
   "exports": {
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@comprador/core": "workspace:*",
+    "@casero/core": "workspace:*",
     "@langchain/core": "1.2.4",
     "@langchain/langgraph": "1.4.8",
     "openai": "7.2.0",

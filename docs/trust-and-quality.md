@@ -1,4 +1,4 @@
-# Comprador trust and quality plan
+# Casero trust and quality plan
 
 ## 1. Security and privacy boundaries
 
@@ -84,7 +84,7 @@ Connector-specific rows override the general normalized-offer default.
 | Redacted claim excerpts      | Account lifetime during personal use | Reassess before adding users                                       |
 | Project briefs/preferences   | Account lifetime                     | Coarse region only; user/project deletion erases records           |
 | Local raw MIME/HTML artifact | Not stored                           | Bodies exist only while the worker processes one message           |
-| Gmail provider copy          | Gmail account lifetime               | Comprador disconnect cannot delete the source message              |
+| Gmail provider copy          | Gmail account lifetime               | Casero disconnect cannot delete the source message                 |
 | Agent run record             | Account lifetime                     | Contains status and model/schema metadata, never raw bodies        |
 | Model trace/eval             | Disabled for message content         | Add a provider only after retention and redaction review           |
 | OpenAI API request           | `store: false`                       | Standard abuse logs may last up to 30 days unless approved for ZDR |

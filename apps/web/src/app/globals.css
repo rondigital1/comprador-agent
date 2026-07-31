@@ -147,3 +147,52 @@
     transform: translateY(0);
   }
 }
+
+.deal-detail-page {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--border), transparent 58%) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--border), transparent 72%) 1px,
+      transparent 1px
+    );
+  background-size: 3rem 3rem;
+  background-position: -1px -1px;
+}
+
+.deal-detail-page > * {
+  background-color: color-mix(in oklch, var(--background), transparent 4%);
+}
+
+.deal-blueprint {
+  background-image:
+    radial-gradient(
+      circle at 72% 24%,
+      color-mix(in oklch, var(--primary), transparent 80%),
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 49.7%,
+      color-mix(in oklch, var(--foreground), transparent 90%) 50%,
+      transparent 50.3%
+    );
+}
+
+.deal-analysis-shell {
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--background), var(--muted) 24%);
+  padding: 1.25rem;
+  box-shadow: 0 1.5rem 4rem
+    color-mix(in oklch, var(--foreground), transparent 94%);
+}
+
+@media (min-width: 640px) {
+  .deal-analysis-shell {
+    padding: 1.5rem;
+  }
+}

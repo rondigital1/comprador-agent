@@ -1,6 +1,6 @@
-# Comprador
+# Casero
 
-Comprador is a personal buying desk that reads promotional Gmail messages,
+Casero is a personal buying desk that reads promotional Gmail messages,
 extracts their terms, compares them with the promotions observed so far, and
 surfaces the offers worth attention.
 
@@ -105,21 +105,30 @@ Start the dashboard and worker together:
 corepack pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3001](http://localhost:3001). The web command pins this
+port because Google OAuth redirect URIs must match exactly; it will fail clearly
+instead of silently selecting another port when the port is unavailable.
 
 ## Google Cloud setup
 
 1. Create a Google Cloud project and enable the Gmail API.
-2. Configure the OAuth audience for an external app. During early development,
-   add your own Gmail address as an allowed test user.
+2. Set the OAuth app name to **Casero** and configure the audience for an
+   external app. During early development, add your own Gmail address as an
+   allowed test user.
 3. Add the restricted scope
    `https://www.googleapis.com/auth/gmail.readonly`.
 4. Create an OAuth 2.0 client with application type **Web application**.
 5. Add both authorized redirect URIs:
-   - `http://localhost:3000/api/auth/callback/google`
-   - `http://localhost:3000/api/gmail/callback`
+   - `http://localhost:3001/api/auth/callback/google`
+   - `http://localhost:3001/api/gmail/callback`
 6. Put the client ID and secret in `AUTH_GOOGLE_ID` and
    `AUTH_GOOGLE_SECRET`.
+
+Google compares the complete redirect URI, including the scheme, hostname,
+port, path, and trailing slash. The value of `GOOGLE_GMAIL_REDIRECT_URI` must be
+identical to the second authorized redirect URI above. After changing redirect
+URIs in Google Cloud, allow a few minutes for the update to take effect, restart
+`pnpm dev`, and begin the Gmail connection again.
 
 Google's external **Testing** status expires authorizations that include Gmail
 scopes after seven days, so weekly reconnection is expected during the safest
@@ -166,7 +175,9 @@ Implemented in the scaffold:
 - Gmail message normalization and pre-LLM sensitive filtering;
 - structured OpenAI extraction inside a bounded LangGraph;
 - deterministic scoring and bounded “best observed” wording;
-- Today, Deals, Watchlist placeholder, and Integrations UI;
+- Today, Deals, Shopping List, and Integrations UI;
+- immediate shopping-item research with verified public offers and optional
+  daily monitoring;
 - disconnect/revoke/delete job path;
 - focused unit tests.
 
@@ -174,8 +185,8 @@ Next implementation slice:
 
 1. run the first real Gmail connection with local credentials;
 2. inspect 20–50 real Promotions messages and fix parsing/classification gaps;
-3. add the shopping-intent editor;
-4. add evidence detail and useful/irrelevant/incorrect feedback actions;
+3. add store-membership preferences and item-search autocomplete;
+4. add useful/irrelevant/incorrect feedback actions;
 5. introduce eval fixtures from redacted owner-approved messages;
 6. only then tune scoring, alerts, and stronger-model escalation.
 

@@ -33,7 +33,7 @@ export default async function LoginPage() {
           </span>
           <div>
             <p className="font-heading text-xl font-semibold tracking-tight">
-              Comprador
+              Casero
             </p>
             <p className="text-sm text-muted-foreground">
               Your personal buying desk

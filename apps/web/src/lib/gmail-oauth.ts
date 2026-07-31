@@ -1,4 +1,4 @@
-import { GmailOAuthClient, TokenCipher } from "@comprador/gmail";
+import { GmailOAuthClient, TokenCipher } from "@casero/gmail";
 
 import { serverEnv } from "./server-env";
 

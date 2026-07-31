@@ -5,6 +5,13 @@ export type LocalMessageInput = {
   bodyText: string;
 };
 
+const MODEL_INPUT_LIMITS = {
+  sender: 1_000,
+  subject: 1_000,
+  snippet: 2_000,
+  bodyText: 40_000,
+} as const;
+
 export type LocalMessageDecision =
   | { allowModel: true }
   | {
@@ -44,22 +51,36 @@ const FINANCIAL_PATTERNS = [
 const matchesAny = (value: string, patterns: RegExp[]) =>
   patterns.some((pattern) => pattern.test(value));
 
+const singleLine = (value: string, maxLength: number) =>
+  value
+    .replace(/[\r\n]+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+
+export function buildPromotionModelPayload(input: LocalMessageInput) {
+  return [
+    `From: ${singleLine(input.sender, MODEL_INPUT_LIMITS.sender)}`,
+    `Subject: ${singleLine(input.subject, MODEL_INPUT_LIMITS.subject)}`,
+    `Snippet: ${singleLine(input.snippet, MODEL_INPUT_LIMITS.snippet)}`,
+    "",
+    input.bodyText.slice(0, MODEL_INPUT_LIMITS.bodyText),
+  ].join("\n");
+}
+
 export function classifyMessageLocally(
   input: LocalMessageInput,
 ): LocalMessageDecision {
-  const headerText = `${input.sender}\n${input.subject}\n${input.snippet}`;
-  const limitedBody = input.bodyText.slice(0, 12_000);
-  const combined = `${headerText}\n${limitedBody}`;
+  const modelPayload = buildPromotionModelPayload(input);
 
-  if (matchesAny(combined, SECURITY_PATTERNS)) {
+  if (matchesAny(modelPayload, SECURITY_PATTERNS)) {
     return { allowModel: false, category: "security" };
   }
 
-  if (matchesAny(combined, FINANCIAL_PATTERNS)) {
+  if (matchesAny(modelPayload, FINANCIAL_PATTERNS)) {
     return { allowModel: false, category: "financial" };
   }
 
-  if (matchesAny(combined, TRANSACTIONAL_PATTERNS)) {
+  if (matchesAny(modelPayload, TRANSACTIONAL_PATTERNS)) {
     return { allowModel: false, category: "transactional" };
   }
 

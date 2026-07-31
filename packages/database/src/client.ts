@@ -7,7 +7,7 @@ const connectionString =
   "postgresql://comprador:comprador@localhost:55432/comprador";
 
 const globalForPrisma = globalThis as unknown as {
-  compradorPrisma?: PrismaClient;
+  caseroPrisma?: PrismaClient;
 };
 
 const createClient = () => {
@@ -15,10 +15,10 @@ const createClient = () => {
   return new PrismaClient({ adapter });
 };
 
-export const prisma = globalForPrisma.compradorPrisma ?? createClient();
+export const prisma = globalForPrisma.caseroPrisma ?? createClient();
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.compradorPrisma = prisma;
+  globalForPrisma.caseroPrisma = prisma;
 }
 
 export type { Prisma } from "./generated/prisma/client";

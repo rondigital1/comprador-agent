@@ -1,9 +1,9 @@
 {
-  "name": "@comprador/web",
+  "name": "@casero/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "2.11.3",
-    "@comprador/core": "workspace:*",
-    "@comprador/database": "workspace:*",
-    "@comprador/gmail": "workspace:*",
+    "@casero/core": "workspace:*",
+    "@casero/database": "workspace:*",
+    "@casero/gmail": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "17.4.2",

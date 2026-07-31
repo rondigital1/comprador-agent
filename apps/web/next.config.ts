@@ -10,11 +10,7 @@ config({
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  transpilePackages: [
-    "@comprador/core",
-    "@comprador/database",
-    "@comprador/gmail",
-  ],
+  transpilePackages: ["@casero/core", "@casero/database", "@casero/gmail"],
 };
 
 export default nextConfig;

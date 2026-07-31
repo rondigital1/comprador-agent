@@ -1,5 +1,5 @@
-import { ConsentPurpose, JobType } from "@comprador/database/generated";
-import { prisma } from "@comprador/database";
+import { ConsentPurpose, JobType } from "@casero/database/generated";
+import { prisma } from "@casero/database";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 

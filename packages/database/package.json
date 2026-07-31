@@ -1,5 +1,5 @@
 {
-  "name": "@comprador/database",
+  "name": "@casero/database",
   "private": true,
   "type": "module",
   "exports": {

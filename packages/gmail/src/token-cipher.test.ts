@@ -35,5 +35,43 @@ describe("normalizeGmailMessage", () => {
 
     expect(message.subject).toBe("20% off");
     expect(message.bodyText).toBe("Use code SAVE20");
+    expect(message.images).toEqual([]);
+  });
+
+  it("retains supported embedded email images without exposing remote trackers", () => {
+    const imageBytes = Buffer.from("email-image");
+    const message = normalizeGmailMessage({
+      id: "message-2",
+      payload: {
+        mimeType: "multipart/related",
+        parts: [
+          {
+            mimeType: "text/html",
+            body: {
+              data: Buffer.from('<img src="cid:hero">Offer').toString(
+                "base64url",
+              ),
+            },
+          },
+          {
+            mimeType: "image/png",
+            filename: "hero.png",
+            headers: [{ name: "Content-ID", value: "<hero>" }],
+            body: {
+              data: imageBytes.toString("base64url"),
+              size: imageBytes.byteLength,
+            },
+          },
+        ],
+      },
+    });
+
+    expect(message.images).toHaveLength(1);
+    expect(message.images[0]).toMatchObject({
+      contentId: "hero",
+      filename: "hero.png",
+      mimeType: "image/png",
+    });
+    expect(message.images[0]?.data).toEqual(imageBytes);
   });
 });

@@ -84,21 +84,22 @@ export default async function TodayPage() {
             <EmptyDescription>
               {snapshot.connection
                 ? "The worker will surface promotions after they pass the local safety filter and evidence checks."
-                : "Comprador requests read-only Gmail access and starts with the Promotions category."}
+                : "Casero requests read-only Gmail access and starts with the Promotions category."}
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Button asChild>
-              <Link
-                href={
-                  snapshot.connection
-                    ? "/settings/integrations"
-                    : "/api/gmail/connect"
-                }
-              >
-                {snapshot.connection ? "Check sync status" : "Connect Gmail"}
-                <ArrowRightIcon data-icon="inline-end" />
-              </Link>
+              {snapshot.connection ? (
+                <Link href="/settings/integrations">
+                  Check sync status
+                  <ArrowRightIcon data-icon="inline-end" />
+                </Link>
+              ) : (
+                <a href="/api/gmail/connect">
+                  Connect Gmail
+                  <ArrowRightIcon data-icon="inline-end" />
+                </a>
+              )}
             </Button>
           </EmptyContent>
         </Empty>

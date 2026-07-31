@@ -10,28 +10,65 @@ export type NormalizedGmailMessage = {
   snippet: string;
   bodyText: string;
   receivedAt: Date | null;
+  images: NormalizedGmailImage[];
+};
+
+export type NormalizedGmailImage = {
+  attachmentId: string | null;
+  contentId: string | null;
+  filename: string | null;
+  mimeType: string;
+  size: number;
+  data: Buffer | null;
 };
 
 const decodeBody = (value: string | null | undefined) =>
   value ? Buffer.from(value, "base64url").toString("utf8") : "";
 
-function collectBodies(
+const supportedImageTypes = new Set([
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+function collectParts(
   part: gmail_v1.Schema$MessagePart,
-  output: { html: string[]; text: string[] },
+  output: {
+    html: string[];
+    text: string[];
+    images: NormalizedGmailImage[];
+  },
 ) {
-  if (part.filename) {
-    return;
+  const mimeType = part.mimeType?.toLocaleLowerCase() ?? "";
+  if (supportedImageTypes.has(mimeType)) {
+    const headers = new Map(
+      (part.headers ?? []).map((header) => [
+        header.name?.toLocaleLowerCase() ?? "",
+        header.value ?? "",
+      ]),
+    );
+    output.images.push({
+      attachmentId: part.body?.attachmentId ?? null,
+      contentId: headers.get("content-id")?.replace(/^<|>$/g, "") ?? null,
+      filename: part.filename || null,
+      mimeType,
+      size: part.body?.size ?? 0,
+      data: part.body?.data ? Buffer.from(part.body.data, "base64url") : null,
+    });
   }
 
-  const content = decodeBody(part.body?.data);
-  if (content && part.mimeType === "text/plain") {
-    output.text.push(content);
-  } else if (content && part.mimeType === "text/html") {
-    output.html.push(content);
+  if (!part.filename) {
+    const content = decodeBody(part.body?.data);
+    if (content && mimeType === "text/plain") {
+      output.text.push(content);
+    } else if (content && mimeType === "text/html") {
+      output.html.push(content);
+    }
   }
 
   for (const child of part.parts ?? []) {
-    collectBodies(child, output);
+    collectParts(child, output);
   }
 }
 
@@ -48,9 +85,13 @@ export function normalizeGmailMessage(
       header.value ?? "",
     ]),
   );
-  const bodies = { html: [] as string[], text: [] as string[] };
+  const bodies = {
+    html: [] as string[],
+    text: [] as string[],
+    images: [] as NormalizedGmailImage[],
+  };
   if (message.payload) {
-    collectBodies(message.payload, bodies);
+    collectParts(message.payload, bodies);
   }
 
   const plainText = bodies.text.join("\n\n").trim();
@@ -75,5 +116,6 @@ export function normalizeGmailMessage(
     receivedAt: message.internalDate
       ? new Date(Number(message.internalDate))
       : null,
+    images: bodies.images,
   };
 }

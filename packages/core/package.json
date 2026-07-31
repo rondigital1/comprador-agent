@@ -1,5 +1,5 @@
 {
-  "name": "@comprador/core",
+  "name": "@casero/core",
   "private": true,
   "type": "module",
   "exports": {

@@ -89,7 +89,33 @@ export class GmailMailboxClient {
       id: messageId,
       format: "full",
     });
-    return normalizeGmailMessage(response.data);
+    const normalized = normalizeGmailMessage(response.data);
+    const candidates = normalized.images
+      .filter((image) => image.size <= 5_000_000)
+      .slice(0, 8);
+    const resolved = await Promise.all(
+      candidates.map(async (image) => {
+        if (image.data || !image.attachmentId) return image;
+        const attachment = await this.#gmail.users.messages.attachments.get({
+          userId: "me",
+          messageId,
+          id: image.attachmentId,
+        });
+        return {
+          ...image,
+          data: attachment.data.data
+            ? Buffer.from(attachment.data.data, "base64url")
+            : null,
+        };
+      }),
+    );
+    let retainedBytes = 0;
+    normalized.images = resolved.filter((image) => {
+      if (!image.data || image.data.byteLength > 5_000_000) return false;
+      retainedBytes += image.data.byteLength;
+      return retainedBytes <= 12_000_000;
+    });
+    return normalized;
   }
 
   async listAddedMessageIds(input: {

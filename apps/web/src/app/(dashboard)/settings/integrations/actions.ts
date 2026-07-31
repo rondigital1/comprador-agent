@@ -1,7 +1,7 @@
 "use server";
 
-import { JobType } from "@comprador/database/generated";
-import { prisma } from "@comprador/database";
+import { JobType } from "@casero/database/generated";
+import { prisma } from "@casero/database";
 import { revalidatePath } from "next/cache";
 
 import { auth } from "@/auth";

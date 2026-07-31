@@ -6,7 +6,6 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -85,8 +84,8 @@ export default async function IntegrationsPage({
             Gmail promotions
           </CardTitle>
           <CardDescription>
-            Read-only access for promotion analysis. Comprador cannot send,
-            modify, archive, or delete your email.
+            Read-only access for promotion analysis. Casero cannot send, modify,
+            archive, or delete your email.
           </CardDescription>
           <CardAction>
             <Badge
@@ -125,7 +124,7 @@ export default async function IntegrationsPage({
                 className="mt-0.5 size-4 shrink-0"
               />
               <p className="text-muted-foreground">
-                Google authorizes read access to the mailbox. Comprador enforces
+                Google authorizes read access to the mailbox. Casero enforces
                 the Promotions category and configured backfill query in
                 application code.
               </p>
@@ -153,10 +152,10 @@ export default async function IntegrationsPage({
             </>
           ) : (
             <Button asChild>
-              <Link href="/api/gmail/connect">
+              <a href="/api/gmail/connect">
                 Connect Gmail
                 <ExternalLinkIcon data-icon="inline-end" />
-              </Link>
+              </a>
             </Button>
           )}
         </CardFooter>

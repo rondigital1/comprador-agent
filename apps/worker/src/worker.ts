@@ -1,4 +1,8 @@
-import { handleJob, scheduleGmailWork } from "./handlers";
+import {
+  handleJob,
+  scheduleGmailWork,
+  scheduleShoppingResearch,
+} from "./handlers";
 import { workerEnv } from "./env";
 import { claimNextJob, completeJob, failJob } from "./queue";
 
@@ -19,6 +23,7 @@ export async function runWorker() {
   while (!shuttingDown) {
     if (Date.now() - lastScheduleAt >= 60_000) {
       await scheduleGmailWork();
+      await scheduleShoppingResearch();
       lastScheduleAt = Date.now();
     }
 

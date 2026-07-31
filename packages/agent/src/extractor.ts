@@ -1,4 +1,4 @@
-import type { PromotionExtraction } from "@comprador/core";
+import type { PromotionExtraction } from "@casero/core";
 
 export type PromotionMessageInput = {
   sender: string;

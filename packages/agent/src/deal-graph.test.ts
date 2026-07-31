@@ -1,4 +1,4 @@
-import type { PromotionExtraction } from "@comprador/core";
+import type { PromotionExtraction } from "@casero/core";
 import { describe, expect, it } from "vitest";
 
 import { evaluateDeal } from "./deal-graph";
@@ -10,7 +10,10 @@ const extraction: PromotionExtraction = {
   merchantName: "Home Store",
   headline: "25% off sofas",
   summary: "A furniture promotion.",
-  promoCode: null,
+  storeCategories: ["HOME_AND_FURNISHINGS"],
+  itemCategories: ["FURNITURE"],
+  categoryConfidence: "HIGH",
+  couponCodes: [],
   discountKind: "percent",
   discountPercent: 25,
   discountAmountMinor: null,

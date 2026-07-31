@@ -1,5 +1,5 @@
 {
-  "name": "@comprador/worker",
+  "name": "@casero/worker",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,10 +9,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@comprador/agent": "workspace:*",
-    "@comprador/core": "workspace:*",
-    "@comprador/database": "workspace:*",
-    "@comprador/gmail": "workspace:*",
+    "@casero/agent": "workspace:*",
+    "@casero/core": "workspace:*",
+    "@casero/database": "workspace:*",
+    "@casero/gmail": "workspace:*",
     "dotenv": "17.4.2",
     "zod": "4.4.3"
   },

@@ -1,4 +1,4 @@
-# Comprador technical design
+# Casero technical design
 
 ## 1. Goals
 

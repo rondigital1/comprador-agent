@@ -1,4 +1,4 @@
-# Comprador web
+# Casero web
 
 The web app owns the dashboard, Google identity login, separate Gmail consent,
 authenticated Gmail callbacks, and the optional Pub/Sub push endpoint.
@@ -8,6 +8,11 @@ Run it from the repository root:
 ```bash
 corepack pnpm dev:web
 ```
+
+The development server is pinned to
+[http://localhost:3001](http://localhost:3001) because OAuth callback URLs must
+use a stable port. If `3001` is already occupied, stop the conflicting process
+instead of allowing the app to move to another port.
 
 The root [README](../../README.md) contains the required environment variables,
 Google Cloud redirect URIs, database setup, and combined web/worker command.

@@ -1,7 +1,7 @@
 import {
-  BookmarkIcon,
   InboxIcon,
   LayoutDashboardIcon,
+  ListChecksIcon,
   SettingsIcon,
   SparklesIcon,
 } from "lucide-react";
@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 const navItems = [
   { href: "/today", label: "Today", icon: LayoutDashboardIcon },
   { href: "/deals", label: "Deals", icon: SparklesIcon },
-  { href: "/watchlist", label: "Watchlist", icon: BookmarkIcon },
+  { href: "/watchlist", label: "Shopping list", icon: ListChecksIcon },
   { href: "/settings/integrations", label: "Integrations", icon: SettingsIcon },
 ];
 
@@ -43,7 +43,7 @@ export function AppShell({
           </span>
           <div>
             <p className="font-heading text-lg font-semibold tracking-tight">
-              Comprador
+              Casero
             </p>
             <p className="text-xs text-muted-foreground">
               Personal buying desk
@@ -95,7 +95,7 @@ export function AppShell({
       <div className="md:pl-64">
         <header className="sticky top-0 flex h-16 items-center border-b bg-background/95 px-4 backdrop-blur md:hidden">
           <Link href="/today" className="font-heading text-lg font-semibold">
-            Comprador
+            Casero
           </Link>
           <nav
             aria-label="Mobile primary"

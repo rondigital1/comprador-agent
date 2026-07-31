@@ -1,6 +1,6 @@
-import { prisma } from "@comprador/database";
-import { GmailConnectionStatus, JobType } from "@comprador/database/generated";
-import { GmailHistoryExpiredError } from "@comprador/gmail";
+import { prisma } from "@casero/database";
+import { GmailConnectionStatus, JobType } from "@casero/database/generated";
+import { GmailHistoryExpiredError } from "@casero/gmail";
 
 import { createMailboxClient } from "./gmail-runtime";
 import { enqueueJob } from "./queue";

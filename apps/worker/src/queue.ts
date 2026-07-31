@@ -1,11 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import { prisma, type Prisma } from "@comprador/database";
-import {
-  JobStatus,
-  JobType,
-  type OutboxJob,
-} from "@comprador/database/generated";
+import { prisma, type Prisma } from "@casero/database";
+import { JobStatus, JobType, type OutboxJob } from "@casero/database/generated";
 
 const CLAIMABLE_STATUSES: JobStatus[] = [JobStatus.PENDING, JobStatus.RETRY];
 

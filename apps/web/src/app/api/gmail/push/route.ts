@@ -1,5 +1,5 @@
-import { JobType } from "@comprador/database/generated";
-import { prisma } from "@comprador/database";
+import { JobType } from "@casero/database/generated";
+import { prisma } from "@casero/database";
 import { OAuth2Client } from "google-auth-library";
 import { z } from "zod";
 

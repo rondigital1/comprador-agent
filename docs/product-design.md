@@ -1,8 +1,8 @@
-# Comprador product design
+# Casero product design
 
 ## 1. Product decision
 
-Comprador should be a **trusted personal buying desk**, not an autonomous
+Casero should be a **trusted personal buying desk**, not an autonomous
 universal shopper.
 
 The strongest initial job is:
@@ -53,7 +53,7 @@ hunter, or a user who expects the application to complete every checkout.
 
 ### Navigation and cold start
 
-Primary navigation is Today, Projects, Deals, Watchlist, Purchase Plan, and
+Primary navigation is Today, Projects, Deals, Shopping List, Purchase Plan, and
 Programs. Activity and Settings/Connections are secondary. Purchase Plan is
 available globally and as a project-filtered view. Home, Clothing, Kitchen, and
 Bedroom remain filters and project tags.
@@ -63,7 +63,7 @@ The first session must be useful without historical claims:
 1. The user signs in with Google.
 2. The user separately approves read-only Gmail access.
 3. The app backfills recent Promotions messages and records one buying need.
-4. Comprador explains the strongest current messages and any intent matches.
+4. Casero explains the strongest current messages and any intent matches.
 5. Comparison areas say "history building" until their minimum sample is met.
 
 The app never turns absence of history into a weak pseudo-comparison. It can
@@ -120,14 +120,22 @@ The system decomposes the mission into item requirements. The user reviews that
 list before research begins. Item research runs in parallel, but all items share
 the same project budget and constraints.
 
-### Watchlist
+### Shopping List
 
-The watchlist supports:
+The shopping list supports:
 
 - an exact product and variant;
 - a flexible need such as "queen mattress under $1,200";
 - a replacement or recurring purchase;
 - a desired date and alert threshold.
+
+Adding an item immediately starts a bounded public-source search. Results stay
+grouped under that item and items with the strongest currently verified options
+rise to the top. If the current options are not good enough, the user can turn
+on daily monitoring for that item. Membership-only prices remain labeled and
+rank below usable public prices until the user records the applicable store
+membership. Item-search autocomplete and store-membership preferences are
+separate follow-up slices.
 
 ### Programs
 
@@ -143,7 +151,7 @@ rewards begin as user-entered facts:
 Saved codes retain merchant, scope, eligibility, expiration, source, and last
 verification. They never show as guaranteed until the merchant accepts them.
 
-Comprador never stores retailer passwords. Points, gift cards, and future credits
+Casero never stores retailer passwords. Points, gift cards, and future credits
 are shown separately from immediate cash savings.
 
 ### Purchase plan

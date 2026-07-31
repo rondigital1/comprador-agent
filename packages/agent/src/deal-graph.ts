@@ -3,7 +3,7 @@ import {
   type PromotionEvaluation,
   type PromotionExtraction,
   type ShoppingIntentInput,
-} from "@comprador/core";
+} from "@casero/core";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 
 import type { PromotionExtractor, PromotionMessageInput } from "./extractor";

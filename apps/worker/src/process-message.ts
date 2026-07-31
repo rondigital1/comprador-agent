@@ -1,16 +1,17 @@
 import { createHash } from "node:crypto";
 
-import { evaluateDeal, OpenAiPromotionExtractor } from "@comprador/agent";
+import { evaluateDeal, OpenAiPromotionExtractor } from "@casero/agent";
 import {
   classifyMessageLocally,
   PROMOTION_SCHEMA_VERSION,
   type PromotionExtraction,
-} from "@comprador/core";
-import { prisma } from "@comprador/database";
-import { AgentRunStatus, MessageStatus } from "@comprador/database/generated";
+} from "@casero/core";
+import { prisma } from "@casero/database";
+import { AgentRunStatus, MessageStatus } from "@casero/database/generated";
 
 import { workerEnv } from "./env";
 import { createMailboxClient } from "./gmail-runtime";
+import { resolveOfferCategories } from "./offer-categories";
 
 const parseDate = (value: string | null) => {
   if (!value) return null;
@@ -24,11 +25,20 @@ const fingerprint = (extraction: PromotionExtraction) =>
       [
         extraction.merchantName.toLowerCase(),
         extraction.headline.toLowerCase(),
-        extraction.promoCode?.toLowerCase() ?? "",
+        extraction.couponCodes
+          .map(({ code }) => code.toLocaleLowerCase())
+          .sort()
+          .join(","),
         extraction.expiresAt ?? "",
       ].join("|"),
     )
     .digest("hex");
+
+const isLikelyLogo = (input: {
+  filename: string | null;
+  contentId: string | null;
+}) =>
+  /logo|brand|mark/i.test(`${input.filename ?? ""} ${input.contentId ?? ""}`);
 
 export async function processGmailMessage(input: {
   connectionId: string;
@@ -141,6 +151,12 @@ export async function processGmailMessage(input: {
       return;
     }
 
+    const categories = await resolveOfferCategories({
+      userId: connection.userId,
+      sender: message.sender,
+      extraction: result.extraction,
+    });
+
     const offer = await prisma.offer.upsert({
       where: {
         gmailMessageId_fingerprint_schemaVersion: {
@@ -157,13 +173,15 @@ export async function processGmailMessage(input: {
         merchantName: result.extraction.merchantName,
         headline: result.extraction.headline,
         summary: result.extraction.summary,
-        promoCode: result.extraction.promoCode,
+        ...categories,
+        discountKind: result.extraction.discountKind,
         currency: result.extraction.currency,
         discountPercent: result.extraction.discountPercent,
         discountAmountMinor: result.extraction.discountAmountMinor,
         minimumSpendMinor: result.extraction.minimumSpendMinor,
         startsAt: parseDate(result.extraction.startsAt),
         expiresAt: parseDate(result.extraction.expiresAt),
+        exclusions: result.extraction.exclusions,
         strength: result.evaluation.strength,
         purchaseFit: result.evaluation.purchaseFit,
         comparableCount: result.evaluation.comparableCount,
@@ -171,6 +189,18 @@ export async function processGmailMessage(input: {
         explanation: result.evaluation.explanation,
       },
       update: {
+        merchantName: result.extraction.merchantName,
+        headline: result.extraction.headline,
+        summary: result.extraction.summary,
+        ...categories,
+        discountKind: result.extraction.discountKind,
+        currency: result.extraction.currency,
+        discountPercent: result.extraction.discountPercent,
+        discountAmountMinor: result.extraction.discountAmountMinor,
+        minimumSpendMinor: result.extraction.minimumSpendMinor,
+        startsAt: parseDate(result.extraction.startsAt),
+        expiresAt: parseDate(result.extraction.expiresAt),
+        exclusions: result.extraction.exclusions,
         score: result.evaluation.score,
         strength: result.evaluation.strength,
         purchaseFit: result.evaluation.purchaseFit,
@@ -180,6 +210,15 @@ export async function processGmailMessage(input: {
     });
 
     await prisma.$transaction([
+      prisma.offerCoupon.deleteMany({ where: { offerId: offer.id } }),
+      prisma.offerCoupon.createMany({
+        data: result.extraction.couponCodes.map((coupon) => ({
+          offerId: offer.id,
+          code: coupon.code,
+          description: coupon.description,
+          sourceKind: "email",
+        })),
+      }),
       prisma.evidence.deleteMany({ where: { offerId: offer.id } }),
       prisma.evidence.createMany({
         data: result.extraction.evidence.map((claim) => ({
@@ -190,6 +229,28 @@ export async function processGmailMessage(input: {
           sourceKind: "gmail",
           observedAt: message.receivedAt ?? new Date(),
         })),
+      }),
+      prisma.emailImage.deleteMany({
+        where: { gmailMessageId: storedMessage.id },
+      }),
+      prisma.emailImage.createMany({
+        data: message.images.flatMap((image, position) =>
+          image.data
+            ? [
+                {
+                  gmailMessageId: storedMessage.id,
+                  contentId: image.contentId,
+                  filename: image.filename,
+                  mimeType: image.mimeType,
+                  byteSize: image.data.byteLength,
+                  sha256: createHash("sha256").update(image.data).digest("hex"),
+                  position,
+                  isLikelyLogo: isLikelyLogo(image),
+                  data: Uint8Array.from(image.data),
+                },
+              ]
+            : [],
+        ),
       }),
       prisma.gmailMessage.update({
         where: { id: storedMessage.id },

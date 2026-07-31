@@ -1,4 +1,4 @@
-# Comprador Gmail integration
+# Casero Gmail integration
 
 ## 1. Current decision
 
@@ -12,7 +12,7 @@ Use two Google grants:
 2. **Connect Gmail** requests `gmail.readonly` with offline access.
 
 This avoids making permanent mailbox permission a hidden consequence of login.
-It also lets the user disconnect Gmail without deleting the Comprador account.
+It also lets the user disconnect Gmail without deleting the Casero account.
 
 ## 2. OAuth flow
 
@@ -34,8 +34,12 @@ access token is encrypted and persisted by the Gmail client token event.
 
 The Google OAuth web client has these local callbacks:
 
-- `/api/auth/callback/google`
-- `/api/gmail/callback`
+- `http://localhost:3001/api/auth/callback/google`
+- `http://localhost:3001/api/gmail/callback`
+
+Register both as authorized redirect URIs on the same Google OAuth web client.
+Google requires an exact match, including the port and path, and
+`GOOGLE_GMAIL_REDIRECT_URI` must equal the second URI.
 
 ## 3. Initial and incremental sync
 
@@ -46,7 +50,7 @@ category:promotions newer_than:1y
 ```
 
 The query is application configuration, not an OAuth limitation. Google has
-authorized read access to the mailbox; Comprador enforces the Promotions and
+authorized read access to the mailbox; Casero enforces the Promotions and
 date boundary in code and explains that distinction in the UI.
 
 Initial sync:

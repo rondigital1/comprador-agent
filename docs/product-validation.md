@@ -1,8 +1,8 @@
-# Comprador product validation
+# Casero product validation
 
 ## 1. Market position
 
-The broad "AI shopping assistant" category is validated but crowded. Comprador
+The broad "AI shopping assistant" category is validated but crowded. Casero
 should not compete on generic chat-based product search. Its wedge is a personal,
 longitudinal decision layer:
 
@@ -12,7 +12,7 @@ longitudinal decision layer:
 
 Closest substitutes:
 
-| Substitute                     | What it already covers                                           | Remaining opening for Comprador                                  |
+| Substitute                     | What it already covers                                           | Remaining opening for Casero                                     |
 | ------------------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
 | ChatGPT product discovery      | Conversational discovery, comparison, and merchant links         | Persistent user intent plus private promotion history            |
 | Google/Gmail shopping features | Promotion organization and shopping context inside a large inbox | Cross-mailbox projects and explicit evidence-based rarity        |

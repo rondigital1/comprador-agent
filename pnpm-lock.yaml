@@ -31,13 +31,13 @@ importers:
       "@auth/prisma-adapter":
         specifier: 2.11.3
         version: 2.11.3(@prisma/client@7.9.1(prisma@7.9.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3))(typescript@6.0.3))
-      "@comprador/core":
+      "@casero/core":
         specifier: workspace:*
         version: link:../../packages/core
-      "@comprador/database":
+      "@casero/database":
         specifier: workspace:*
         version: link:../../packages/database
-      "@comprador/gmail":
+      "@casero/gmail":
         specifier: workspace:*
         version: link:../../packages/gmail
       class-variance-authority:
@@ -113,16 +113,16 @@ importers:
 
   apps/worker:
     dependencies:
-      "@comprador/agent":
+      "@casero/agent":
         specifier: workspace:*
         version: link:../../packages/agent
-      "@comprador/core":
+      "@casero/core":
         specifier: workspace:*
         version: link:../../packages/core
-      "@comprador/database":
+      "@casero/database":
         specifier: workspace:*
         version: link:../../packages/database
-      "@comprador/gmail":
+      "@casero/gmail":
         specifier: workspace:*
         version: link:../../packages/gmail
       dotenv:
@@ -144,7 +144,7 @@ importers:
 
   packages/agent:
     dependencies:
-      "@comprador/core":
+      "@casero/core":
         specifier: workspace:*
         version: link:../core
       "@langchain/core":

@@ -1,6 +1,6 @@
-import { prisma } from "@comprador/database";
-import type { GmailConnection } from "@comprador/database/generated";
-import { GmailMailboxClient, TokenCipher } from "@comprador/gmail";
+import { prisma } from "@casero/database";
+import type { GmailConnection } from "@casero/database/generated";
+import { GmailMailboxClient, TokenCipher } from "@casero/gmail";
 
 import { workerEnv } from "./env";
 

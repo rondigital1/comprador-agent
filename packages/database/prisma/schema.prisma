@@ -25,6 +25,8 @@ enum JobType {
   GMAIL_PROCESS_MESSAGE
   GMAIL_RENEW_WATCH
   GMAIL_DISCONNECT
+  DEAL_DEEP_ANALYSIS
+  SHOPPING_INTENT_RESEARCH
 }
 
 enum JobStatus {
@@ -72,10 +74,37 @@ enum AgentRunStatus {
   FAILED
 }
 
+enum DealAnalysisStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum ShoppingResearchStatus {
+  IDLE
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum ShoppingDealAvailability {
+  IN_STOCK
+  LIMITED
+  UNKNOWN
+}
+
+enum ShoppingDealMatch {
+  EXACT
+  CLOSE
+  ALTERNATIVE
+}
+
 model User {
-  id              String            @id @default(cuid())
+  id              String           @id @default(cuid())
   name            String?
-  email           String?           @unique
+  email           String?          @unique
   emailVerified   DateTime?
   image           String?
   accounts        Account[]
@@ -87,8 +116,8 @@ model User {
   shoppingIntents ShoppingIntent[]
   jobs            OutboxJob[]
   agentRuns       AgentRun[]
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model Account {
@@ -183,24 +212,25 @@ model OutboxJob {
 }
 
 model GmailMessage {
-  id             String        @id @default(cuid())
+  id             String          @id @default(cuid())
   userId         String
   connectionId   String
   gmailMessageId String
   threadId       String?
   historyId      String?
-  status         MessageStatus @default(PENDING)
+  status         MessageStatus   @default(PENDING)
   sender         String?
   subject        String?
   snippet        String?
   receivedAt     DateTime?
   processedAt    DateTime?
   discardReason  String?
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   connection     GmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   offers         Offer[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  images         EmailImage[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@unique([connectionId, gmailMessageId])
   @@index([userId, status, receivedAt])
@@ -215,13 +245,21 @@ model Offer {
   merchantName        String
   headline            String
   summary             String
-  promoCode           String?
+  storeCategories     String[]          @default([])
+  itemCategories      String[]          @default([])
+  categoryConfidence  String            @default("LOW")
+  categorySourceKind  String            @default("EMAIL")
+  categorySourceUrl   String?
+  categoryRationale   String?
+  categoryModel       String?
+  discountKind        String            @default("other")
   currency            String?
   discountPercent     Decimal?          @db.Decimal(5, 2)
   discountAmountMinor Int?
   minimumSpendMinor   Int?
   startsAt            DateTime?
   expiresAt           DateTime?
+  exclusions          String[]          @default([])
   status              OfferStatus       @default(ACTIVE)
   strength            PromotionStrength @default(INSUFFICIENT_HISTORY)
   purchaseFit         PurchaseFit       @default(NO_ACTIVE_INTENT)
@@ -231,6 +269,8 @@ model Offer {
   user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   gmailMessage        GmailMessage      @relation(fields: [gmailMessageId], references: [id], onDelete: Cascade)
   evidence            Evidence[]
+  coupons             OfferCoupon[]
+  analyses            DealAnalysis[]
   matches             OfferMatch[]
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -238,6 +278,58 @@ model Offer {
   @@unique([gmailMessageId, fingerprint, schemaVersion])
   @@index([userId, status, score])
   @@index([userId, merchantName, createdAt])
+  @@index([storeCategories], type: Gin)
+  @@index([itemCategories], type: Gin)
+}
+
+model OfferCoupon {
+  id          String   @id @default(cuid())
+  offerId     String
+  code        String
+  description String?
+  sourceKind  String   @default("email")
+  offer       Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([offerId, code])
+  @@index([offerId])
+}
+
+model EmailImage {
+  id             String       @id @default(cuid())
+  gmailMessageId String
+  contentId      String?
+  filename       String?
+  mimeType       String
+  byteSize       Int
+  sha256         String
+  position       Int
+  isLikelyLogo   Boolean      @default(false)
+  data           Bytes
+  gmailMessage   GmailMessage @relation(fields: [gmailMessageId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([gmailMessageId, sha256])
+  @@index([gmailMessageId, isLikelyLogo, position])
+}
+
+model DealAnalysis {
+  id          String             @id @default(cuid())
+  offerId     String
+  status      DealAnalysisStatus @default(PENDING)
+  model       String?
+  result      Json?
+  sources     Json?
+  error       String?
+  asOf        DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  offer       Offer              @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([offerId, createdAt])
+  @@index([status, createdAt])
 }
 
 model Evidence {
@@ -255,20 +347,55 @@ model Evidence {
 }
 
 model ShoppingIntent {
-  id          String       @id @default(cuid())
-  userId      String
-  name        String
-  query       String
-  category    String?
-  maxPriceMinor Int?
-  currency    String?
-  active      Boolean      @default(true)
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  matches     OfferMatch[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id               String                 @id @default(cuid())
+  userId           String
+  name             String
+  query            String
+  category         String?
+  maxPriceMinor    Int?
+  currency         String?
+  active           Boolean                @default(true)
+  watchEnabled     Boolean                @default(false)
+  researchStatus   ShoppingResearchStatus @default(IDLE)
+  lastResearchedAt DateTime?
+  nextCheckAt      DateTime?
+  researchSummary  String?
+  lastError        String?
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matches          OfferMatch[]
+  deals            ShoppingDeal[]
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
 
   @@index([userId, active])
+  @@index([watchEnabled, nextCheckAt])
+}
+
+model ShoppingDeal {
+  id                 String                   @id @default(cuid())
+  intentId           String
+  merchantName       String
+  title              String
+  priceMinor         Int
+  listPriceMinor     Int?
+  shippingCostMinor  Int?
+  currency           String
+  url                String
+  sourceTitle        String
+  membershipRequired Boolean                  @default(false)
+  membershipProgram  String?
+  availability       ShoppingDealAvailability @default(UNKNOWN)
+  matchQuality       ShoppingDealMatch        @default(EXACT)
+  score              Int
+  rationale          String
+  active             Boolean                  @default(true)
+  observedAt         DateTime
+  intent             ShoppingIntent           @relation(fields: [intentId], references: [id], onDelete: Cascade)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@unique([intentId, url])
+  @@index([intentId, active, score])
 }
 
 model OfferMatch {

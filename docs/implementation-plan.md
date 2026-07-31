@@ -1,4 +1,4 @@
-# Comprador implementation plan
+# Casero implementation plan
 
 ## Current mode
 

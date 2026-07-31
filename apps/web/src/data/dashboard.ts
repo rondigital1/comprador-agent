@@ -1,4 +1,4 @@
-import { prisma } from "@comprador/database";
+import { prisma } from "@casero/database";
 
 export async function getDashboardSnapshot(userId: string) {
   const [connection, offers, pendingJobs] = await Promise.all([
@@ -20,7 +20,14 @@ export async function getDashboardSnapshot(userId: string) {
         merchantName: true,
         headline: true,
         summary: true,
-        promoCode: true,
+        storeCategories: true,
+        itemCategories: true,
+        categoryConfidence: true,
+        coupons: {
+          select: { code: true, description: true },
+          orderBy: { createdAt: "asc" },
+        },
+        discountKind: true,
         discountPercent: true,
         discountAmountMinor: true,
         currency: true,
@@ -30,6 +37,15 @@ export async function getDashboardSnapshot(userId: string) {
         comparableCount: true,
         score: true,
         explanation: true,
+        gmailMessage: {
+          select: {
+            images: {
+              select: { id: true },
+              orderBy: [{ isLikelyLogo: "desc" }, { position: "asc" }],
+              take: 1,
+            },
+          },
+        },
         evidence: {
           select: {
             claimPath: true,

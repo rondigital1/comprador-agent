@@ -9,10 +9,10 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: {
-    default: "Comprador",
-    template: "%s · Comprador",
+    default: "Casero",
+    template: "%s · Casero",
   },
-  description: "A personal buying desk for Gmail promotions.",
+  description: "A personal shopping list and deal research desk.",
 };
 
 export default function RootLayout({
