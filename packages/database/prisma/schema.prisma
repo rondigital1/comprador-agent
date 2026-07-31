@@ -1,0 +1,302 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum GmailConnectionStatus {
+  ACTIVE
+  PAUSED
+  REAUTH_REQUIRED
+  DISCONNECTING
+}
+
+enum ConsentPurpose {
+  GMAIL_PROMOTION_ANALYSIS
+  DEAL_NOTIFICATION
+}
+
+enum JobType {
+  GMAIL_INITIAL_SYNC
+  GMAIL_INCREMENTAL_SYNC
+  GMAIL_PROCESS_MESSAGE
+  GMAIL_RENEW_WATCH
+  GMAIL_DISCONNECT
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  RETRY
+  DEAD
+  CANCELLED
+}
+
+enum MessageStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  DISCARDED
+  FAILED
+}
+
+enum OfferStatus {
+  ACTIVE
+  EXPIRED
+  DISMISSED
+  SAVED
+}
+
+enum PromotionStrength {
+  INSUFFICIENT_HISTORY
+  ROUTINE
+  STRONG
+  BEST_OBSERVED
+}
+
+enum PurchaseFit {
+  NO_ACTIVE_INTENT
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AgentRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id              String            @id @default(cuid())
+  name            String?
+  email           String?           @unique
+  emailVerified   DateTime?
+  image           String?
+  accounts        Account[]
+  sessions        Session[]
+  gmailConnection GmailConnection?
+  consentGrants   ConsentGrant[]
+  gmailMessages   GmailMessage[]
+  offers          Offer[]
+  shoppingIntents ShoppingIntent[]
+  jobs            OutboxJob[]
+  agentRuns       AgentRun[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model GmailConnection {
+  id                     String                @id @default(cuid())
+  userId                 String                @unique
+  emailAddress           String                @unique
+  status                 GmailConnectionStatus @default(ACTIVE)
+  accessTokenCiphertext  String
+  refreshTokenCiphertext String?
+  tokenExpiresAt         DateTime?
+  scopes                 String[]              @default([])
+  labelIds               String[]              @default(["CATEGORY_PROMOTIONS"])
+  backfillQuery          String
+  historyId              String?
+  watchExpiration        DateTime?
+  lastSyncAt             DateTime?
+  lastError              String?
+  user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages               GmailMessage[]
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+}
+
+model ConsentGrant {
+  id            String         @id @default(cuid())
+  userId        String
+  purpose       ConsentPurpose
+  policyVersion String
+  grantedAt     DateTime       @default(now())
+  revokedAt     DateTime?
+  metadata      Json?
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, revokedAt])
+}
+
+model OutboxJob {
+  id             String    @id @default(cuid())
+  userId         String
+  type           JobType
+  status         JobStatus @default(PENDING)
+  payload        Json
+  idempotencyKey String    @unique
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(5)
+  availableAt    DateTime  @default(now())
+  leaseOwner     String?
+  leaseToken     String?
+  leaseExpiresAt DateTime?
+  lastError      String?
+  completedAt    DateTime?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, availableAt])
+  @@index([userId, type])
+}
+
+model GmailMessage {
+  id             String        @id @default(cuid())
+  userId         String
+  connectionId   String
+  gmailMessageId String
+  threadId       String?
+  historyId      String?
+  status         MessageStatus @default(PENDING)
+  sender         String?
+  subject        String?
+  snippet        String?
+  receivedAt     DateTime?
+  processedAt    DateTime?
+  discardReason  String?
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connection     GmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  offers         Offer[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([connectionId, gmailMessageId])
+  @@index([userId, status, receivedAt])
+}
+
+model Offer {
+  id                  String            @id @default(cuid())
+  userId              String
+  gmailMessageId      String
+  fingerprint         String
+  schemaVersion       String
+  merchantName        String
+  headline            String
+  summary             String
+  promoCode           String?
+  currency            String?
+  discountPercent     Decimal?          @db.Decimal(5, 2)
+  discountAmountMinor Int?
+  minimumSpendMinor   Int?
+  startsAt            DateTime?
+  expiresAt           DateTime?
+  status              OfferStatus       @default(ACTIVE)
+  strength            PromotionStrength @default(INSUFFICIENT_HISTORY)
+  purchaseFit         PurchaseFit       @default(NO_ACTIVE_INTENT)
+  comparableCount     Int               @default(0)
+  score               Int
+  explanation         String
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gmailMessage        GmailMessage      @relation(fields: [gmailMessageId], references: [id], onDelete: Cascade)
+  evidence            Evidence[]
+  matches             OfferMatch[]
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@unique([gmailMessageId, fingerprint, schemaVersion])
+  @@index([userId, status, score])
+  @@index([userId, merchantName, createdAt])
+}
+
+model Evidence {
+  id              String   @id @default(cuid())
+  offerId         String
+  claimPath       String
+  redactedExcerpt String
+  excerptHash     String
+  sourceKind      String
+  observedAt      DateTime
+  offer           Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@index([offerId, claimPath])
+}
+
+model ShoppingIntent {
+  id          String       @id @default(cuid())
+  userId      String
+  name        String
+  query       String
+  category    String?
+  maxPriceMinor Int?
+  currency    String?
+  active      Boolean      @default(true)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matches     OfferMatch[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId, active])
+}
+
+model OfferMatch {
+  offerId   String
+  intentId  String
+  fit       PurchaseFit
+  rationale String
+  offer     Offer          @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  intent    ShoppingIntent @relation(fields: [intentId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+
+  @@id([offerId, intentId])
+}
+
+model AgentRun {
+  id             String         @id @default(cuid())
+  userId         String
+  kind           String
+  status         AgentRunStatus @default(PENDING)
+  model          String?
+  schemaVersion  String
+  inputReference String
+  error          String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([userId, status, createdAt])
+}

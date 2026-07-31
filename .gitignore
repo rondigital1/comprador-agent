@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local configuration and secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Prisma
+packages/database/src/generated/
+
+# Logs and operating-system files
+*.log
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
